@@ -1,0 +1,35 @@
+name: Compile Source SDK 2013
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Generate Project Files (VPC)
+      run: |
+        cd mp/src
+        cmd /c creategameprojects.bat
+
+    - name: Build Solution
+      run: |
+        cd mp/src
+        msbuild games.sln /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v142
+        
+    - name: Upload DLLs
+      uses: actions/upload-artifact@v4
+      with:
+        name: compiled-dlls
+        path: |
+          mp/src/game/server/Release/server.dll
+          mp/src/game/client/Release/client.dll
